@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Lilita+One&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/app.css">
+    <title>Counter</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .counter { font-size: 3rem; margin: 20px; }
+        button { font-size: 1.5rem; margin: 10px; padding: 10px 20px; }
+        .logs { margin-top: 20px; text-align: left; display: inline-block; }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Counter User</h1>
+    </div>
+    <div class="counter-container">
+        <div class="counter" id="counter">0</div>
+    </div>
+    <div class="button-container">
+        <button onclick="increase()">Up</button>
+        <button onclick="decrease()">Down</button>
+        <button onclick="save()">Save</button>
+        <button onclick="reset()">Reset</button>
+    </div>
+
+    <h2>Saved Logs</h2>
+    <div class="logs" id="logContainer"></div>
+
+    <script>
+        let count = 0;
+        
+        function updateCounter() {
+            document.getElementById("counter").innerText = count;
+        }
+
+        function increase() {
+            count++;
+            updateCounter();
+        }
+
+        function decrease() {
+            count--;
+            updateCounter();
+        }
+
+        async function save() {
+            const response = await fetch("http://localhost:3000/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ count })
+            });
+            const data = await response.json();
+            displayLogs(data.logs);
+        }
+
+        async function reset() {
+            count = 0;
+            updateCounter();
+            await fetch("http://localhost:3000/reset", { method: "POST" });
+            displayLogs([]);
+        }
+
+        async function fetchLogs() {
+            const response = await fetch("http://localhost:3000/logs");
+            const logs = await response.json();
+            displayLogs(logs);
+        }
+
+        function displayLogs(logs) {
+            const container = document.getElementById("logContainer");
+            container.innerHTML = logs.map(log => `<p>[${log.timestamp}]: ${log.count}</p>`).join("");
+        }
+
+        fetchLogs();
+    </script>
+
+</body>
+</html>
